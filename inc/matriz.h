@@ -42,42 +42,25 @@ void desenho_pio(bool *desenho, uint32_t valor_led, PIO pio, uint sm, double r, 
     }
 }
 
-void imprime_numeros(char index, PIO pio, uint sm)
+void imprime_numeros_letras(char index, PIO pio, uint sm)
 {
-    uint valor_led;
+    static const bool* caracteres[36] = {
+        numero_0, numero_1, numero_2, numero_3, numero_4,
+        numero_5, numero_6, numero_7, numero_8, numero_9,
+        letra_A, letra_B, letra_C, letra_D, letra_E,
+        letra_F, letra_G, letra_H, letra_I, letra_J,
+        letra_K, letra_L, letra_M, letra_N, letra_O,
+        letra_P, letra_Q, letra_R, letra_S, letra_T,
+        letra_U, letra_V, letra_W, letra_X, letra_Y, letra_Z
+    };
 
-    switch (index)
-    {
-    case '0':
-        desenho_pio(numero_0, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '1':
-        desenho_pio(numero_1, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '2':
-        desenho_pio(numero_2, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '3':
-        desenho_pio(numero_3, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case'4':
-        desenho_pio(numero_4, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '5':
-        desenho_pio(numero_5, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '6':
-        desenho_pio(numero_6, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '7':
-        desenho_pio(numero_7, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '8':
-        desenho_pio(numero_8, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
-    case '9':
-        desenho_pio(numero_9, valor_led, pio, sm, 0.0, 0.0, 0.1);
-        break;
+    uint32_t valor_led = 0; // Inicializa valor_led antes de passar para desenho_pio
+
+    if (index >= '0' && index <= '9') {
+        desenho_pio((bool*)caracteres[index - '0'], valor_led, pio, sm, 0.0, 0.0, 0.1);
+    } 
+    else if (index >= 'A' && index <= 'Z') {
+        desenho_pio((bool*)caracteres[index - 'A' + 10], valor_led, pio, sm, 0.0, 0.0, 0.1);
     }
 }
 
