@@ -61,7 +61,7 @@ char morse_to_char(char *morse)
             return morse_table[i].letter;
         }
     }
-    return '?'; // Retorna '?' se não encontrado
+    return 'a'; // Retorna '?' se não encontrado
 }
 
 void init_hardware()
@@ -132,12 +132,10 @@ void gpio_irq_handler(uint gpio, uint32_t events)
     if (gpio == BUTTON_A)
     {
         callback_a = true;
-        printf("Botão A pressionado!\n"); // Debug para verificar
     }
     else if (gpio == BUTTON_B)
     {
         callback_b = true;
-        printf("Botão B pressionado! (Backspace)\n"); // Debug para verificar se o botão está funcionando
     }
 }
 
@@ -229,7 +227,6 @@ int main()
     {
         if (callback_a == 1)
         {
-            printf("Callback A ativado!\n");
             morse_converter();
             imprime_numeros_letras(last_letter, pio, 0);
             alterar_display();
