@@ -101,9 +101,9 @@ void init_hardware()
     // Configuração do Buzzer
     gpio_set_function(BUZZER, GPIO_FUNC_PWM);
     uint slice_num = pwm_gpio_to_slice_num(BUZZER);
-    pwm_set_wrap(slice_num, 50000);  // Define um período para o PWM (ajustável)
-    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 0);  // Começa com volume 0
-    pwm_set_enabled(slice_num, true);  // Habilita PWM
+    pwm_set_wrap(slice_num, 50000);                                // Define um período para o PWM (ajustável)
+    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 0); // Começa com volume 0
+    pwm_set_enabled(slice_num, true);                              // Habilita PWM
 }
 
 void alterar_display()
@@ -138,13 +138,23 @@ void alterar_display()
 
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
-    if (gpio == BUTTON_A)
+    static absolute_time_t last_time = {0}; // Garante que a variável mantenha seu valor entre chamadas
+    absolute_time_t current_time = get_absolute_time();
+
+    // Calcula a diferença de tempo em microsegundos
+    int64_t diff = absolute_time_diff_us(last_time, current_time);
+    printf("...\n");
+
+    if (diff > 250000) // 250ms
     {
-        callback_a = true;
-    }
-    else if (gpio == BUTTON_B)
-    {
-        callback_b = true;
+        if (gpio == BUTTON_A)
+        {
+            callback_a = true;
+        }
+        else if (gpio == BUTTON_B)
+        {
+            callback_b = true;
+        }
     }
 }
 
@@ -157,10 +167,10 @@ void morse_converter()
         if (press_time == 0)
         {
             press_time = time_us_64(); // Marca o tempo inicial do pressionamento
-            
+
             // ✅ Emitir som de 1000Hz enquanto o botão está pressionado
             uint slice_num = pwm_gpio_to_slice_num(BUZZER);
-            pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 12000);  // Define volume do buzzer
+            pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 12000); // Define volume do buzzer
             buzzer_on = true;
 
             if (!first_press)
@@ -234,7 +244,6 @@ void morse_converter()
     }
     sleep_ms(10); // Pequeno atraso para evitar leitura errada
 }
-
 
 int main()
 {
