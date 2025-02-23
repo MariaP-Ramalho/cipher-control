@@ -20,6 +20,8 @@
 
 char morse_code[10] = "";         // Buffer para armazenar o código Morse de uma letra
 char message[100] = "";           // Buffer para armazenar a palavra completa
+static volatile uint a = 0;
+static volatile uint b = 0;
 volatile char last_letter = '\0'; // Variável para armazenar a última letra digitada (sem exibir)
 volatile int morse_index = 0;
 volatile int msg_index = 0;
@@ -138,24 +140,36 @@ void alterar_display()
 
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
+
     static absolute_time_t last_time = {0}; // Garante que a variável mantenha seu valor entre chamadas
     absolute_time_t current_time = get_absolute_time();
 
+    a++;
+    printf("Sem debounce: %d\n", a);
+
     // Calcula a diferença de tempo em microsegundos
     int64_t diff = absolute_time_diff_us(last_time, current_time);
-    printf("...\n");
+    printf("Tempo decorrido: %lld us\n", diff);
 
     if (diff > 250000) // 250ms
+{
+    if (!gpio_get(BUTTON_A) || !gpio_get(BUTTON_B)) // Verifica se ainda está pressionado
     {
+        last_time = current_time; // Atualiza o tempo da última interrupção válida
+
         if (gpio == BUTTON_A)
         {
             callback_a = true;
+            b++;
+            printf("Com debounce: %d\n", b);
         }
         else if (gpio == BUTTON_B)
         {
             callback_b = true;
+            printf("Com debounce: %d\n", b);
         }
     }
+}
 }
 
 void morse_converter()
@@ -168,7 +182,6 @@ void morse_converter()
         {
             press_time = time_us_64(); // Marca o tempo inicial do pressionamento
 
-            // ✅ Emitir som de 1000Hz enquanto o botão está pressionado
             uint slice_num = pwm_gpio_to_slice_num(BUZZER);
             pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 12000); // Define volume do buzzer
             buzzer_on = true;
