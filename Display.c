@@ -7,6 +7,7 @@
 #include "inc/ssd1306.h"
 #include "inc/font.h"
 #include "inc/matriz.h"
+#include "hardware/pwm.h"
 
 // Definição dos pinos
 #define I2C_PORT i2c1
@@ -15,6 +16,7 @@
 #define endereco 0x3C
 #define BUTTON_A 5 // Pino do botão
 #define BUTTON_B 6 // Pino do botão
+#define BUZZER 10  // Defina o pino do buzzer
 
 char morse_code[10] = "";         // Buffer para armazenar o código Morse de uma letra
 char message[100] = "";           // Buffer para armazenar a palavra completa
@@ -95,6 +97,13 @@ void init_hardware()
     // Limpa o display. O display inicia com todos os pixels apagados.
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
+
+    // Configuração do Buzzer
+    gpio_set_function(BUZZER, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(BUZZER);
+    pwm_set_wrap(slice_num, 50000);  // Define um período para o PWM (ajustável)
+    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 0);  // Começa com volume 0
+    pwm_set_enabled(slice_num, true);  // Habilita PWM
 }
 
 void alterar_display()
@@ -106,7 +115,7 @@ void alterar_display()
     ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
 
     // Define os parâmetros do display
-    const int max_chars_per_line = 14; // Ajuste conforme necessário (depende da fonte usada)
+    const int max_chars_per_line = 14; // Limite de caracteres por linha
     const int max_lines = 5;           // Número máximo de linhas que cabem no display
     int message_length = strlen(message);
 
@@ -139,14 +148,20 @@ void gpio_irq_handler(uint gpio, uint32_t events)
     }
 }
 
-
 void morse_converter()
 {
+    static bool buzzer_on = false; // Estado do buzzer
+
     if (gpio_get(BUTTON_A) == 0)
     { // Botão pressionado
         if (press_time == 0)
         {
             press_time = time_us_64(); // Marca o tempo inicial do pressionamento
+            
+            // ✅ Emitir som de 1000Hz enquanto o botão está pressionado
+            uint slice_num = pwm_gpio_to_slice_num(BUZZER);
+            pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 12000);  // Define volume do buzzer
+            buzzer_on = true;
 
             if (!first_press)
             {
@@ -164,6 +179,13 @@ void morse_converter()
     }
     else
     { // Botão solto
+        if (buzzer_on)
+        {
+            uint slice_num = pwm_gpio_to_slice_num(BUZZER);
+            pwm_set_chan_level(slice_num, pwm_gpio_to_channel(BUZZER), 0); // Para o som
+            buzzer_on = false;
+        }
+
         if (press_time > 0)
         {
             release_time = time_us_64();
@@ -210,9 +232,9 @@ void morse_converter()
             }
         }
     }
-
     sleep_ms(10); // Pequeno atraso para evitar leitura errada
 }
+
 
 int main()
 {
@@ -231,7 +253,7 @@ int main()
             imprime_numeros_letras(last_letter, pio, 0);
             alterar_display();
         }
-        
+
         if (callback_b == 1)
         {
             if (msg_index > 0)
@@ -239,7 +261,7 @@ int main()
                 msg_index--;               // Remove o último caractere
                 message[msg_index] = '\0'; // Atualiza a string
                 printf("%s\n", message);
-                alterar_display();         // Atualiza o display após backspace
+                alterar_display(); // Atualiza o display após backspace
             }
             callback_b = false;
         }
