@@ -3,7 +3,6 @@
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
 #include "hardware/pwm.h"
-#include "hardware/timer.h"
 
 #define BUTTON_A 5 // Pino do botão
 #define BUZZER 10

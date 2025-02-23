@@ -1,13 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-#include "pico/stdlib.h"
 #include "hardware/gpio.h"
-#include "hardware/i2c.h"
-#include "hardware/timer.h"
 #include "inc/ssd1306.h"
 #include "inc/font.h"
 #include "inc/matriz.h"
-#include "hardware/pwm.h"
 #include "inc/morse.h"
 
 // Definição dos pinos
