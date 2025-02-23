@@ -18,8 +18,8 @@
 #define BUTTON_B 6 // Pino do botão
 #define BUZZER 10  // Defina o pino do buzzer
 
-char morse_code[10] = "";         // Buffer para armazenar o código Morse de uma letra
-char message[100] = "";           // Buffer para armazenar a palavra completa
+char morse_code[10] = ""; // Buffer para armazenar o código Morse de uma letra
+char message[100] = "";   // Buffer para armazenar a palavra completa
 static volatile uint a = 0;
 static volatile uint b = 0;
 volatile char last_letter = '\0'; // Variável para armazenar a última letra digitada (sem exibir)
@@ -44,16 +44,7 @@ typedef struct
 } MorseCode;
 
 MorseCode morse_table[] = {
-    {".-", 'A'},   {"-...", 'B'}, {"-.-.", 'C'}, {"-..", 'D'}, 
-    {".", 'E'},    {"..-.", 'F'}, {"--.", 'G'},  {"....", 'H'}, 
-    {"..", 'I'},   {".---", 'J'}, {"-.-", 'K'},  {".-..", 'L'}, 
-    {"--", 'M'},   {"-.", 'N'},   {"---", 'O'},  {".--.", 'P'}, 
-    {"--.-", 'Q'}, {".-.", 'R'},  {"...", 'S'},  {"-", 'T'}, 
-    {"..-", 'U'},  {"...-", 'V'}, {".--", 'W'},  {"-..-", 'X'}, 
-    {"-.--", 'Y'}, {"--..", 'Z'}, {"-----", '0'}, {".----", '1'}, 
-    {"..---", '2'}, {"...--", '3'}, {"....-", '4'}, {".....", '5'}, 
-    {"-....", '6'}, {"--...", '7'}, {"---..", '8'}, {"----.", '9'}
-};
+    {".-", 'A'}, {"-...", 'B'}, {"-.-.", 'C'}, {"-..", 'D'}, {".", 'E'}, {"..-.", 'F'}, {"--.", 'G'}, {"....", 'H'}, {"..", 'I'}, {".---", 'J'}, {"-.-", 'K'}, {".-..", 'L'}, {"--", 'M'}, {"-.", 'N'}, {"---", 'O'}, {".--.", 'P'}, {"--.-", 'Q'}, {".-.", 'R'}, {"...", 'S'}, {"-", 'T'}, {"..-", 'U'}, {"...-", 'V'}, {".--", 'W'}, {"-..-", 'X'}, {"-.--", 'Y'}, {"--..", 'Z'}, {"-----", '0'}, {".----", '1'}, {"..---", '2'}, {"...--", '3'}, {"....-", '4'}, {".....", '5'}, {"-....", '6'}, {"--...", '7'}, {"---..", '8'}, {"----.", '9'}};
 
 // Converte sequência Morse para caractere
 char morse_to_char(char *morse)
@@ -152,24 +143,24 @@ void gpio_irq_handler(uint gpio, uint32_t events)
     printf("Tempo decorrido: %lld us\n", diff);
 
     if (diff > 250000) // 250ms
-{
-    if (!gpio_get(BUTTON_A) || !gpio_get(BUTTON_B)) // Verifica se ainda está pressionado
     {
-        last_time = current_time; // Atualiza o tempo da última interrupção válida
+        if (!gpio_get(BUTTON_A) || !gpio_get(BUTTON_B)) // Verifica se ainda está pressionado
+        {
+            last_time = current_time; // Atualiza o tempo da última interrupção válida
 
-        if (gpio == BUTTON_A)
-        {
-            callback_a = true;
-            b++;
-            printf("Com debounce: %d\n", b);
-        }
-        else if (gpio == BUTTON_B)
-        {
-            callback_b = true;
-            printf("Com debounce: %d\n", b);
+            if (gpio == BUTTON_A)
+            {
+                callback_a = true;
+                b++;
+                printf("Com debounce: %d\n", b);
+            }
+            else if (gpio == BUTTON_B)
+            {
+                callback_b = true;
+                printf("Com debounce: %d\n", b);
+            }
         }
     }
-}
 }
 
 void morse_converter()
@@ -258,6 +249,27 @@ void morse_converter()
     sleep_ms(10); // Pequeno atraso para evitar leitura errada
 }
 
+void backspace()
+{
+    if (msg_index > 0)
+    {
+        msg_index--;               // Remove o último caractere
+        message[msg_index] = '\0'; // Atualiza a string
+
+        if (msg_index > 0 && message[msg_index - 1] == ' ')
+        {
+            msg_index--;
+            message[msg_index] = '\0';
+        }
+
+        new_word = 0;
+        last_press_time = time_us_64();
+
+        alterar_display();
+    }
+    callback_b = false;
+}
+
 int main()
 {
     PIO pio = init_pio();
@@ -278,14 +290,7 @@ int main()
 
         if (callback_b == 1)
         {
-            if (msg_index > 0)
-            {
-                msg_index--;               // Remove o último caractere
-                message[msg_index] = '\0'; // Atualiza a string
-                printf("%s\n", message);
-                alterar_display(); // Atualiza o display após backspace
-            }
-            callback_b = false;
+            backspace();
         }
     }
 }
