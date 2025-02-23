@@ -8,12 +8,13 @@
 #include "inc/font.h"
 #include "inc/matriz.h"
 
-//Definição dos pinos
+// Definição dos pinos
 #define I2C_PORT i2c1
 #define I2C_SDA 14
 #define I2C_SCL 15
 #define endereco 0x3C
 #define BUTTON_A 5 // Pino do botão
+#define BUTTON_B 6 // Pino do botão
 
 char morse_code[10] = "";         // Buffer para armazenar o código Morse de uma letra
 char message[100] = "";           // Buffer para armazenar a palavra completa
@@ -26,6 +27,7 @@ volatile uint64_t last_press_time = 0;
 volatile int first_press = 1;
 volatile int new_word = 0;
 volatile bool callback_a = 0;
+volatile bool callback_b = 0;
 ssd1306_t ssd;
 
 void gpio_irq_handler(uint gpio, uint32_t events);
@@ -36,7 +38,6 @@ typedef struct
     const char *morse;
     char letter;
 } MorseCode;
-
 
 MorseCode morse_table[] = {
     {".-", 'A'},   {"-...", 'B'}, {"-.-.", 'C'}, {"-..", 'D'}, 
@@ -66,10 +67,18 @@ char morse_to_char(char *morse)
 void init_hardware()
 {
     stdio_init_all(); // Inicializa UART para comunicação serial
+
+    // Inicializa botao A
     gpio_init(BUTTON_A);
     gpio_set_dir(BUTTON_A, GPIO_IN);
     gpio_pull_up(BUTTON_A);
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
+    // Inicializa botao B
+    gpio_init(BUTTON_B);
+    gpio_set_dir(BUTTON_B, GPIO_IN);
+    gpio_pull_up(BUTTON_B);
+    gpio_set_irq_enabled_with_callback(BUTTON_B, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler); // Habilita interrupção para o botão B
 
     // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400 * 1000);
@@ -95,14 +104,43 @@ void alterar_display()
 
     ssd1306_fill(&ssd, !cor);                     // Limpa o display
     ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-    ssd1306_draw_string(&ssd, message, 10, 30);   // Desenha uma string
+
+    // Define os parâmetros do display
+    const int max_chars_per_line = 14; // Ajuste conforme necessário (depende da fonte usada)
+    const int max_lines = 5;           // Número máximo de linhas que cabem no display
+    int message_length = strlen(message);
+
+    for (int i = 0; i < max_lines; i++)
+    {
+        if (i * max_chars_per_line >= message_length)
+            break; // Sai do loop se não houver mais caracteres para exibir
+
+        // Calcula a posição inicial do trecho da string
+        char line_buffer[max_chars_per_line + 1];
+        strncpy(line_buffer, &message[i * max_chars_per_line], max_chars_per_line);
+        line_buffer[max_chars_per_line] = '\0'; // Garante o término da string
+
+        // Exibe a linha correspondente no display
+        ssd1306_draw_string(&ssd, line_buffer, 10, 10 + (i * 10));
+    }
+
     ssd1306_send_data(&ssd);
 }
 
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
-    callback_a = true;
+    if (gpio == BUTTON_A)
+    {
+        callback_a = true;
+        printf("Botão A pressionado!\n"); // Debug para verificar
+    }
+    else if (gpio == BUTTON_B)
+    {
+        callback_b = true;
+        printf("Botão B pressionado! (Backspace)\n"); // Debug para verificar se o botão está funcionando
+    }
 }
+
 
 void morse_converter()
 {
@@ -191,9 +229,22 @@ int main()
     {
         if (callback_a == 1)
         {
+            printf("Callback A ativado!\n");
             morse_converter();
             imprime_numeros_letras(last_letter, pio, 0);
             alterar_display();
+        }
+        
+        if (callback_b == 1)
+        {
+            if (msg_index > 0)
+            {
+                msg_index--;               // Remove o último caractere
+                message[msg_index] = '\0'; // Atualiza a string
+                printf("%s\n", message);
+                alterar_display();         // Atualiza o display após backspace
+            }
+            callback_b = false;
         }
     }
 }
