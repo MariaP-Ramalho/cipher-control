@@ -2,11 +2,17 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
+#include "hardware/i2c.h"
 #include "hardware/timer.h"
 #include "inc/ssd1306.h"
 #include "inc/font.h"
 #include "inc/matriz.h"
 
+//Definição dos pinos
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define endereco 0x3C
 #define BUTTON_A 5 // Pino do botão
 
 char morse_code[10] = "";         // Buffer para armazenar o código Morse de uma letra
@@ -20,6 +26,7 @@ volatile uint64_t last_press_time = 0;
 volatile int first_press = 1;
 volatile int new_word = 0;
 volatile bool callback_a = 0;
+ssd1306_t ssd;
 
 void gpio_irq_handler(uint gpio, uint32_t events);
 
@@ -29,6 +36,7 @@ typedef struct
     const char *morse;
     char letter;
 } MorseCode;
+
 
 MorseCode morse_table[] = {
     {".-", 'A'},   {"-...", 'B'}, {"-.-.", 'C'}, {"-..", 'D'}, 
@@ -62,6 +70,33 @@ void init_hardware()
     gpio_set_dir(BUTTON_A, GPIO_IN);
     gpio_pull_up(BUTTON_A);
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
+    // I2C Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400 * 1000);
+
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);                    // Set the GPIO pin function to I2C
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);                    // Set the GPIO pin function to I2C
+    gpio_pull_up(I2C_SDA);                                        // Pull up the data line
+    gpio_pull_up(I2C_SCL);                                        // Pull up the clock line
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd);                                         // Configura o display
+    ssd1306_send_data(&ssd);
+
+    // Envia os dados para o display
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+}
+
+void alterar_display()
+{
+    bool cor = true;
+    cor = !cor;
+
+    ssd1306_fill(&ssd, !cor);                     // Limpa o display
+    ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+    ssd1306_draw_string(&ssd, message, 10, 30);   // Desenha uma string
+    ssd1306_send_data(&ssd);
 }
 
 void gpio_irq_handler(uint gpio, uint32_t events)
@@ -158,6 +193,7 @@ int main()
         {
             morse_converter();
             imprime_numeros_letras(last_letter, pio, 0);
+            alterar_display();
         }
     }
 }
