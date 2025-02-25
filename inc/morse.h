@@ -140,22 +140,30 @@ void morse_converter()
     sleep_ms(10); // Pequeno atraso para evitar leitura errada
 }
 
-void backspace()
+void backspace(PIO pio)
 {
     if (msg_index > 0)
     {
         msg_index--;               // Remove o último caractere
         message[msg_index] = '\0'; // Atualiza a string
 
+        // Se o penúltimo caractere for um espaço, remove também
         if (msg_index > 0 && message[msg_index - 1] == ' ')
         {
             msg_index--;
             message[msg_index] = '\0';
         }
 
+        // Atualiza last_letter com a nova última letra
+        if (msg_index > 0) {
+            last_letter = message[msg_index - 1]; // Última letra após remoção
+        } else {
+            last_letter = '\0'; // Se não houver mais caracteres, define como nulo
+        }
+
         new_word = 0;
         last_press_time = time_us_64();
     }
-
 }
+
 

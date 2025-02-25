@@ -17,10 +17,12 @@
 ssd1306_t ssd;
 static volatile uint a = 0;
 static volatile uint b = 0;
+static volatile bool callback_js = 0;
 void init_hardware();
 void alterar_display();
 void executar_comando();
 void gpio_irq_handler(uint gpio, uint32_t events);
+void zerar_placa();
 
 int main()
 {
@@ -40,8 +42,9 @@ int main()
 
         if (callback_b == 1)
         {
-            backspace();
+            backspace(pio);
             alterar_display();
+            imprime_numeros_letras(last_letter, pio, 0);
             callback_b = false;
         }
 
@@ -77,6 +80,7 @@ void gpio_irq_handler(uint gpio, uint32_t events)
             else if (gpio == BUTTON_B)
             {
                 callback_b = true;
+                b++;
                 printf("Com debounce: %d\n", b);
             }
         }
