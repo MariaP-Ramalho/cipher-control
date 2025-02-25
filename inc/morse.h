@@ -9,8 +9,6 @@
 
 char morse_code[10] = ""; // Buffer para armazenar o código Morse de uma letra
 char message[100] = "";   // Buffer para armazenar a palavra completa
-static volatile uint a = 0;
-static volatile uint b = 0;
 volatile char last_letter = '\0'; // Variável para armazenar a última letra digitada (sem exibir)
 volatile int morse_index = 0;
 volatile int msg_index = 0;
@@ -124,7 +122,7 @@ void morse_converter()
 
                 if (msg_index < sizeof(message) - 2)
                 {
-                    if (new_word)
+                    if (msg_index > 0 && new_word)
                     { // Se for uma nova palavra, adiciona um espaço antes da letra
                         message[msg_index++] = ' ';
                         new_word = 0;

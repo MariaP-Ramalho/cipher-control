@@ -10,11 +10,16 @@
 #define I2C_SCL 15
 #define endereco 0x3C
 #define BUTTON_B 6 // Pino do botão
+#define LED_BLUE 12
+#define LED_RED 13
+#define LED_GREEN 11
 
 ssd1306_t ssd;
-
+static volatile uint a = 0;
+static volatile uint b = 0;
 void init_hardware();
 void alterar_display();
+void executar_comando();
 void gpio_irq_handler(uint gpio, uint32_t events);
 
 int main()
@@ -39,6 +44,8 @@ int main()
             alterar_display();
             callback_b = false;
         }
+
+        executar_comando();
     }
 }
 
@@ -76,6 +83,33 @@ void gpio_irq_handler(uint gpio, uint32_t events)
     }
 }
 
+void executar_comando()
+{
+    if (strcmp(message, "RED ON") == 0)
+    {
+        gpio_put(LED_RED, 1);
+    }
+    else if (strcmp(message, "RED OFF") == 0)
+    {
+        gpio_put(LED_RED, 0);
+    }
+    else if (strcmp(message, "BLUE ON") == 0)
+    {
+        gpio_put(LED_BLUE, 1);
+    }
+    else if (strcmp(message, "BLUE OFF") == 0)
+    {
+        gpio_put(LED_BLUE, 0);
+    }
+    else if (strcmp(message, "GREEN ON") == 0)
+    {
+        gpio_put(LED_GREEN, 1);
+    }
+    else if (strcmp(message, "GREEN OFF") == 0)
+    {
+        gpio_put(LED_GREEN, 0);
+    }
+}
 
 void alterar_display()
 {
@@ -123,6 +157,16 @@ void init_hardware()
     gpio_pull_up(BUTTON_B);
     gpio_set_irq_enabled_with_callback(BUTTON_B, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler); // Habilita interrupção para o botão B
 
+    // Inicializa LEDS
+    gpio_init(LED_BLUE);
+    gpio_set_dir(LED_BLUE, GPIO_OUT);
+
+    gpio_init(LED_GREEN);
+    gpio_set_dir(LED_GREEN, GPIO_OUT);
+
+    gpio_init(LED_RED);
+    gpio_set_dir(LED_RED, GPIO_OUT);
+
     // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400 * 1000);
 
@@ -137,6 +181,7 @@ void init_hardware()
     // Envia os dados para o display
     // Limpa o display. O display inicia com todos os pixels apagados.
     ssd1306_fill(&ssd, false);
+    ssd1306_rect(&ssd, 3, 3, 122, 58, true, !true); // Desenha um retângulo
     ssd1306_send_data(&ssd);
 
     // Configuração do Buzzer
