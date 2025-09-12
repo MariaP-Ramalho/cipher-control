@@ -46,7 +46,7 @@ Inicialmente foi implementado com **código Morse**, mas o desenvolvedor pode co
 
 ## 📎 Documentação Completa
 Para informações detalhadas sobre especificações, firmware, fluxogramas e testes, acesse o PDF completo:  
-[📄 Documentação Projeto Final EmbarcaTech](./DocumentaçãoCipherControl.pdf)
+[📄 Documentação do projeto](./DocumentaçãoCipherControl.pdf)
 
 ---
 
