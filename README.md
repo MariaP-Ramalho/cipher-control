@@ -21,7 +21,7 @@ Inicialmente foi implementado com **código Morse**, mas o desenvolvedor pode co
 - **Botões** (A e B)  
 - **Bateria** + módulo carregador  
 
-> Para detalhes completos de pinagem e diagramas, consulte a [📄 Documentação do Projeto](./Documentação%20Projeto%20Final%20EmbarcaTech.pdf).
+> Para detalhes completos de pinagem e diagramas, consulte a [📄 Documentação do Projeto](./DocumentaçãoCipherControl.pdf).
 
 ## ⚙️ Firmware
 - Implementação em **C/C++** para Raspberry Pi Pico.  
@@ -46,9 +46,10 @@ Inicialmente foi implementado com **código Morse**, mas o desenvolvedor pode co
 
 ## 📎 Documentação Completa
 Para informações detalhadas sobre especificações, firmware, fluxogramas e testes, acesse o PDF completo:  
-[📄 Documentação Projeto Final EmbarcaTech](./Documentação%20Projeto%20Final%20EmbarcaTech.pdf)
+[📄 Documentação Projeto Final EmbarcaTech](./DocumentaçãoCipherControl.pdf)
 
 ---
 
 ## 👨‍💻 Autores
-Projeto desenvolvido no contexto do programa **EmbarcaTech**.
+Maria Eduarda Pamponet Ramalho
+>Sistema desenvolvido como projeto final na Residência Tecnológica em Sistemas Embarcados "Embarca Tech" idealizado pelo CEPEDI
