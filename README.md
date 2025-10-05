@@ -47,6 +47,7 @@ Inicialmente foi implementado com **código Morse**, mas o desenvolvedor pode co
 ## 📎 Documentação Completa
 Para informações detalhadas sobre especificações, firmware, fluxogramas e testes, acesse o PDF completo:  
 [📄 Documentação do projeto](./DocumentaçãoCipherControl.pdf)
+[📹 Vídeo do projeto rodando na placa BitdogLab](https://drive.google.com/file/d/1BXs-ztoPsoe8T88Evhrz3iMr0X34cBi5/view?usp=sharing)
 
 ---
 
